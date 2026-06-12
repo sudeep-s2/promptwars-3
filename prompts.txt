@@ -1,0 +1,4 @@
+Gemini API Structured Prompt:
+"The user's highest emission category is [CATEGORY] at [PCT]% of their total footprint ([KG] kg/month).
+Give one specific, actionable recommendation with exact numbers for reducing this. 
+Keep it under 40 words. Be encouraging."

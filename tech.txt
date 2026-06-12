@@ -1,0 +1,7 @@
+Core UI: React 19.2.6 & React DOM 19.2.6
+Build System: Vite 8.0.12 (static site generator configuration)
+Styling: Tailwind CSS 3.4.10 & PostCSS 8.4.41 (utility-first glassmorphic system)
+Testing: Vitest 2.0.5 & JSDOM 24.1.1 (headless browser environment verification)
+Charts: Recharts 2.15.0 (responsive canvas visualization layer)
+Icons: Lucide React 0.435.0 (tree-shakeable SVG icons)
+Language: TypeScript 6.0.2 (strict compile-time checking)

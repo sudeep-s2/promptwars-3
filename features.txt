@@ -1,0 +1,9 @@
+1. Responsive carbon footprint dashboard with circular score ring gauge
+2. Real-time dynamic visual category comparison bars
+3. Multi-step carbon activity tracker form with input validation (Transport, Food, Electricity, Shopping)
+4. Offline-first local storage safety wrapper caching active state and targets
+5. Dual-path Recharts alternative future timeline simulation (Current vs. Improved)
+6. Future Persona savings card projecting yearly CO2 and USD savings with tangible analogies
+7. Impact-score prioritizer ranking lifestyle modification suggestions
+8. Transparent methodology detailing UN/EPA carbon coefficients, formulas, and references
+9. Async AI carbon advisors utilizing Gemini API, failing safe to deterministic guides if offline
