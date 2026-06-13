@@ -1,5 +1,5 @@
-import { Recommendation, ActivityEntry } from '../types';
-import { COEFFICIENTS, BASELINES } from './carbonMath';
+import { Recommendation, ActivityEntry, DietType } from '../types';
+import { COEFFICIENTS } from './carbonMath';
 
 /**
  * Computes the impact score for a recommendation.
@@ -28,7 +28,7 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
   let shoppingCO2 = 0;
 
   let carKm = 0;
-  let currentDiet: 'high-meat' | 'mixed' | 'vegetarian' | 'vegan' = 'mixed';
+  let currentDiet: DietType = 'mixed';
   let electricityKwh = 0;
   let clothingItems = 0;
   let electronicsItems = 0;
@@ -43,16 +43,13 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
         }
       } else if (entry.category === 'food') {
         foodCO2 += entry.kgCO2;
-        currentDiet = entry.subcategory as any;
+        currentDiet = entry.subcategory;
       } else if (entry.category === 'electricity') {
         electricityCO2 += entry.kgCO2;
         electricityKwh += entry.quantity;
       } else if (entry.category === 'shopping') {
         shoppingCO2 += entry.kgCO2;
-        // In shopping, quantity = clothing items, additional = electronics items
         clothingItems += entry.quantity;
-        // We might store electronics items in subcategory or save it in quantity.
-        // Let's assume subcategory is 'clothing' or 'electronics'
         if (entry.subcategory === 'clothing') {
           clothingItems += entry.quantity;
         } else if (entry.subcategory === 'electronics') {
@@ -74,6 +71,11 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
     clothingItems = 3;
     electronicsItems = 1;
   }
+
+  void foodCO2;
+  void electricityCO2;
+  void shoppingCO2;
+  void electronicsItems;
 
   const recs: Recommendation[] = [];
 

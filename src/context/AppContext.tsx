@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { ActivityEntry, SimulatorState } from '../types';
+import { ActivityEntry, SimulatorState, TabId } from '../types';
+import { DEFAULT_MONTHLY_TARGET } from '../constants/carbonConstants';
 import { AppAction } from './actions';
 import { load, save, StorageKey } from '../utils/storage';
 
@@ -7,7 +8,7 @@ export interface AppState {
   entries: ActivityEntry[];
   monthlyTarget: number;
   simulatorLevers: SimulatorState;
-  currentTab: string;
+  currentTab: TabId;
 }
 
 const DEFAULT_LEVERS: SimulatorState = {
@@ -21,7 +22,7 @@ const DEFAULT_LEVERS: SimulatorState = {
 
 const INITIAL_STATE: AppState = {
   entries: [],
-  monthlyTarget: 400, // kg CO2
+  monthlyTarget: DEFAULT_MONTHLY_TARGET, // kg CO2
   simulatorLevers: DEFAULT_LEVERS,
   currentTab: 'dashboard',
 };
@@ -65,7 +66,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'CLEAR_DATA':
       return {
         entries: [],
-        monthlyTarget: 400,
+        monthlyTarget: DEFAULT_MONTHLY_TARGET,
         simulatorLevers: DEFAULT_LEVERS,
         currentTab: 'dashboard'
       };

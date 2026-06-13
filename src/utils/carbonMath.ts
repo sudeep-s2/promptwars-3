@@ -1,36 +1,16 @@
+import { BASELINES, COEFFICIENTS, SCORE_CATEGORY_RATIO_CAP, SCORE_WEIGHTS } from '../constants/carbonConstants';
+import { DIET_OPTIONS, TRANSPORT_MODES } from '../constants/options';
 import { TransportMode, DietType, ActivityCategory, CarbonScore } from '../types';
 
-// Deterministic coefficients (kg CO2 per unit)
-export const COEFFICIENTS = {
-  transport: {
-    car: 0.192,       // kg CO2 per km
-    bus: 0.089,       // kg CO2 per km
-    train: 0.041,      // kg CO2 per km
-    flight: 0.255,     // kg CO2 per km
-    'walk-bike': 0.000 // kg CO2 per km
-  },
-  food: {
-    'high-meat': 7.2,  // kg CO2 per day
-    mixed: 5.6,        // kg CO2 per day
-    vegetarian: 3.8,   // kg CO2 per day
-    vegan: 2.9         // kg CO2 per day
-  },
-  electricity: {
-    grid: 0.385        // kg CO2 per kWh
-  },
-  shopping: {
-    clothing: 15.0,    // kg CO2 per item
-    electronics: 80.0  // kg CO2 per item
-  }
-} as const;
+export { BASELINES, COEFFICIENTS } from '../constants/carbonConstants';
 
-// Global average footprints (kg CO2 per month) for single adult
-export const BASELINES = {
-  transport: 150,      // e.g., ~800km in average mixed transport
-  food: 170,           // e.g., ~30 days of mixed diet
-  electricity: 120,    // e.g., ~310 kWh of grid electricity
-  shopping: 60         // e.g., 2 clothing items + 0.375 electronics items
-} as const;
+export function isTransportMode(value: string): value is TransportMode {
+  return TRANSPORT_MODES.some(mode => mode === value);
+}
+
+export function isDietType(value: string): value is DietType {
+  return DIET_OPTIONS.some(diet => diet === value);
+}
 
 /**
  * Calculates emissions for a transport entry.
@@ -76,9 +56,9 @@ export function calculateEntryCO2(
 ): number {
   switch (category) {
     case 'transport':
-      return calculateTransportCO2(subcategory as TransportMode, quantity);
+      return isTransportMode(subcategory) ? calculateTransportCO2(subcategory, quantity) : 0;
     case 'food':
-      return calculateFoodCO2(subcategory as DietType, quantity);
+      return isDietType(subcategory) ? calculateFoodCO2(subcategory, quantity) : 0;
     case 'electricity':
       return calculateElectricityCO2(quantity);
     case 'shopping':
@@ -101,16 +81,16 @@ export function calculateCarbonScore(
   monthlyShoppingCO2: number
 ): CarbonScore {
   // Normalize against baselines (cap individual category ratios to prevent extreme values from distorting everything)
-  const normTransport = Math.min(250, (monthlyTransportCO2 / BASELINES.transport) * 100);
-  const normFood = Math.min(250, (monthlyFoodCO2 / BASELINES.food) * 100);
-  const normElectricity = Math.min(250, (monthlyElectricityCO2 / BASELINES.electricity) * 100);
-  const normShopping = Math.min(250, (monthlyShoppingCO2 / BASELINES.shopping) * 100);
+  const normTransport = Math.min(SCORE_CATEGORY_RATIO_CAP, (monthlyTransportCO2 / BASELINES.transport) * 100);
+  const normFood = Math.min(SCORE_CATEGORY_RATIO_CAP, (monthlyFoodCO2 / BASELINES.food) * 100);
+  const normElectricity = Math.min(SCORE_CATEGORY_RATIO_CAP, (monthlyElectricityCO2 / BASELINES.electricity) * 100);
+  const normShopping = Math.min(SCORE_CATEGORY_RATIO_CAP, (monthlyShoppingCO2 / BASELINES.shopping) * 100);
 
   const weightedSum = (
-    (normTransport * 0.35) +
-    (normFood * 0.25) +
-    (normElectricity * 0.20) +
-    (normShopping * 0.20)
+    (normTransport * SCORE_WEIGHTS.transport) +
+    (normFood * SCORE_WEIGHTS.food) +
+    (normElectricity * SCORE_WEIGHTS.electricity) +
+    (normShopping * SCORE_WEIGHTS.shopping)
   );
 
   // Score is 100 - weighted footprint index. Capped between 0 and 100.

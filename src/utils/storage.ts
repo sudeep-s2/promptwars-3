@@ -23,7 +23,8 @@ export function load<T>(key: StorageKey, fallback: T): T {
   try {
     const value = localStorage.getItem(key);
     if (value === null) return fallback;
-    return JSON.parse(value) as T;
+    const parsed: T = JSON.parse(value);
+    return parsed;
   } catch (error) {
     console.warn(`[Storage] Failed to load key "${key}", using fallback:`, error);
     return fallback;

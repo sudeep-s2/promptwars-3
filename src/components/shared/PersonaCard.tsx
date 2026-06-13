@@ -1,5 +1,5 @@
 import React from 'react';
-import { Leaf, DollarSign, ArrowRight, ShieldAlert, Sparkles } from 'lucide-react';
+import { Leaf, DollarSign, ArrowRight, Sparkles } from 'lucide-react';
 
 interface PersonaCardProps {
   currentScore: number;

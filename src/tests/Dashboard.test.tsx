@@ -4,18 +4,22 @@ import { AppProvider } from '../context/AppContext';
 import { Dashboard } from '../components/Dashboard';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+interface MockChartProps {
+  children?: React.ReactNode;
+}
+
 // Mock Recharts to avoid jsdom layout engine issues
 vi.mock('recharts', async () => {
   return {
-    ResponsiveContainer: ({ children }: any) => <div className="mock-responsive-container">{children}</div>,
-    BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
+    ResponsiveContainer: ({ children }: MockChartProps) => <div className="mock-responsive-container">{children}</div>,
+    BarChart: ({ children }: MockChartProps) => <div data-testid="bar-chart">{children}</div>,
     Bar: () => <div />,
     XAxis: () => <div />,
     YAxis: () => <div />,
     CartesianGrid: () => <div />,
     Tooltip: () => <div />,
     Legend: () => <div />,
-    AreaChart: ({ children }: any) => <div data-testid="area-chart">{children}</div>,
+    AreaChart: ({ children }: MockChartProps) => <div data-testid="area-chart">{children}</div>,
     Area: () => <div />,
   };
 });

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useCarbon } from '../hooks/useCarbon';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { ScoreRing } from './shared/ScoreRing';
 import { CategoryBar } from './shared/CategoryBar';
 import { TrendChart } from './shared/TrendChart';
-import { getCarbonInsights } from '../utils/insights';
+import { useCarbonInsight } from '../hooks/useCarbonInsight';
 import { ActivityCategory } from '../types';
 import { Sparkles, PlusCircle, Target, RefreshCw, AlertCircle, Trash2 } from 'lucide-react';
 import { deleteEntry, setTarget, setTab, clearData } from '../context/actions';
@@ -25,8 +25,6 @@ export const Dashboard: React.FC = () => {
   const { entries } = useAppState();
   const dispatch = useAppDispatch();
 
-  const [insight, setInsight] = useState<string>('');
-  const [loadingInsight, setLoadingInsight] = useState<boolean>(true);
   const [editingTarget, setEditingTarget] = useState<boolean>(false);
   const [tempTarget, setTempTarget] = useState<string>(String(monthlyTarget));
 
@@ -45,36 +43,7 @@ export const Dashboard: React.FC = () => {
   const highestCategory = highestCategoryObj.amount > 0 ? highestCategoryObj.name : 'transport';
   const highestCO2 = highestCategoryObj.amount;
   const highestPct = totalCO2 > 0 ? (highestCO2 / totalCO2) * 100 : 0;
-
-  useEffect(() => {
-    let active = true;
-    setLoadingInsight(true);
-    
-    // Only call insights helper if there is some recorded emission, otherwise show welcome message
-    if (totalCO2 === 0) {
-      setInsight('Welcome! Log your activities in the Tracker tab to compute your Carbon Score and receive AI-driven reduction plans.');
-      setLoadingInsight(false);
-      return;
-    }
-
-    getCarbonInsights(highestCategory, highestPct, highestCO2)
-      .then(res => {
-        if (active) {
-          setInsight(res);
-          setLoadingInsight(false);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setInsight('Tips: Switch commuting to public transit and reduce red meat consumption to instantly lower your score.');
-          setLoadingInsight(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [transportCO2, foodCO2, electricityCO2, shoppingCO2, totalCO2, highestCategory, highestPct, highestCO2]);
+  const { insight, loadingInsight } = useCarbonInsight(totalCO2, highestCategory, highestPct, highestCO2);
 
   const handleSaveTarget = () => {
     const val = parseFloat(tempTarget);

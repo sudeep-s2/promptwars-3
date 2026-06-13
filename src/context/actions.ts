@@ -1,11 +1,11 @@
-import { ActivityEntry, SimulatorState } from '../types';
+import { ActivityEntry, SimulatorState, TabId } from '../types';
 
 export type AppAction =
   | { type: 'ADD_ENTRY'; payload: ActivityEntry }
   | { type: 'DELETE_ENTRY'; payload: string }
   | { type: 'SET_TARGET'; payload: number }
   | { type: 'UPDATE_LEVERS'; payload: Partial<SimulatorState> }
-  | { type: 'SET_TAB'; payload: string }
+  | { type: 'SET_TAB'; payload: TabId }
   | { type: 'CLEAR_DATA' };
 
 export const addEntry = (entry: ActivityEntry): AppAction => ({
@@ -28,7 +28,7 @@ export const updateLevers = (levers: Partial<SimulatorState>): AppAction => ({
   payload: levers
 });
 
-export const setTab = (tab: string): AppAction => ({
+export const setTab = (tab: TabId): AppAction => ({
   type: 'SET_TAB',
   payload: tab
 });

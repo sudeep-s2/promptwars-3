@@ -9,6 +9,7 @@ import {
   BookOpen, 
   Leaf 
 } from 'lucide-react';
+import type { TabId } from './types';
 
 // Lazy load heavy components for optimized chunk splitting
 const Dashboard = lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -28,11 +29,11 @@ export const AppContent: React.FC = () => {
   const { currentTab } = useAppState();
   const dispatch = useAppDispatch();
 
-  const handleTabChange = (tabName: string) => {
+  const handleTabChange = (tabName: TabId) => {
     dispatch(setTab(tabName));
   };
 
-  const navItems = [
+  const navItems: ReadonlyArray<{ id: TabId; label: string; icon: typeof LayoutDashboard }> = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'tracker', label: 'Tracker', icon: PlusCircle },
     { id: 'simulator', label: 'Simulator', icon: Sliders },

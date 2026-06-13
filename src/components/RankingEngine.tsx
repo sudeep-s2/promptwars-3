@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { useAppState } from '../context/AppContext';
 import { generateRecommendations } from '../utils/roi';
-import { Recommendation } from '../types';
 import { 
   Award, 
   DollarSign, 
   Leaf, 
   ChevronDown, 
   ChevronUp, 
-  TrendingUp, 
   Activity, 
   HelpCircle 
 } from 'lucide-react';

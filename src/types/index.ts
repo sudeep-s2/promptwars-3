@@ -1,18 +1,51 @@
 export type ActivityCategory = 'transport' | 'food' | 'electricity' | 'shopping';
 
+export type TabId = 'dashboard' | 'tracker' | 'simulator' | 'recs' | 'methodology';
+
 export type TransportMode = 'car' | 'bus' | 'train' | 'flight' | 'walk-bike';
 
 export type DietType = 'high-meat' | 'mixed' | 'vegetarian' | 'vegan';
 
-export interface ActivityEntry {
+export type ShoppingSubcategory = 'clothing' | 'electronics';
+
+export type ActivityUnit = 'km' | 'days' | 'kWh' | 'items';
+
+interface BaseActivityEntry {
   id: string;
   timestamp: number;
-  category: ActivityCategory;
-  subcategory: string;
   quantity: number;
-  unit: string;
   kgCO2: number;
 }
+
+export interface TransportActivityEntry extends BaseActivityEntry {
+  category: 'transport';
+  subcategory: TransportMode;
+  unit: 'km';
+}
+
+export interface FoodActivityEntry extends BaseActivityEntry {
+  category: 'food';
+  subcategory: DietType;
+  unit: 'days';
+}
+
+export interface ElectricityActivityEntry extends BaseActivityEntry {
+  category: 'electricity';
+  subcategory: 'grid';
+  unit: 'kWh';
+}
+
+export interface ShoppingActivityEntry extends BaseActivityEntry {
+  category: 'shopping';
+  subcategory: ShoppingSubcategory;
+  unit: 'items';
+}
+
+export type ActivityEntry =
+  | TransportActivityEntry
+  | FoodActivityEntry
+  | ElectricityActivityEntry
+  | ShoppingActivityEntry;
 
 export interface UserFootprint {
   entries: ActivityEntry[];

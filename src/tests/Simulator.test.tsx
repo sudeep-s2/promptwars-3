@@ -4,11 +4,15 @@ import { AppProvider } from '../context/AppContext';
 import { Simulator } from '../components/Simulator';
 import { describe, it, expect, vi } from 'vitest';
 
+interface MockChartProps {
+  children?: React.ReactNode;
+}
+
 // Mock Recharts to avoid layout issues in testing
 vi.mock('recharts', async () => {
   return {
-    ResponsiveContainer: ({ children }: any) => <div className="mock-responsive-container">{children}</div>,
-    AreaChart: ({ children }: any) => <div data-testid="area-chart">{children}</div>,
+    ResponsiveContainer: ({ children }: MockChartProps) => <div className="mock-responsive-container">{children}</div>,
+    AreaChart: ({ children }: MockChartProps) => <div data-testid="area-chart">{children}</div>,
     Area: () => <div />,
     XAxis: () => <div />,
     YAxis: () => <div />,
