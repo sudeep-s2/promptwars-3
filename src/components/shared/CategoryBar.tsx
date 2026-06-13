@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Car, 
   Utensils, 
@@ -58,16 +58,35 @@ const CATEGORY_META = {
   }
 };
 
-export const CategoryBar: React.FC<CategoryBarProps> = ({ category, amount }) => {
+export const CategoryBar: React.FC<CategoryBarProps> = ({ category, amount }): React.ReactElement => {
   const meta = CATEGORY_META[category];
   const Icon = meta.icon;
   
-  // Calculate percentage of baseline
-  const percentageOfBaseline = Math.round((amount / meta.baseline) * 100);
-  const cappedWidth = Math.min(100, percentageOfBaseline);
+  // Memoize percentage calculations
+  const percentageOfBaseline = useMemo(
+    () => Math.round((amount / meta.baseline) * 100),
+    [amount, meta.baseline]
+  );
 
-  // Status check
-  const isOverBaseline = amount > meta.baseline;
+  const cappedWidth = useMemo(
+    () => Math.min(100, percentageOfBaseline),
+    [percentageOfBaseline]
+  );
+
+  const isOverBaseline = useMemo(
+    () => amount > meta.baseline,
+    [amount, meta.baseline]
+  );
+
+  const percentageColor = useMemo(
+    (): string => isOverBaseline ? 'text-rose-400' : 'text-emerald-400',
+    [isOverBaseline]
+  );
+
+  const barShadowClass = useMemo(
+    (): string => isOverBaseline ? 'opacity-90 shadow-[0_0_8px_#f43f5e]' : '',
+    [isOverBaseline]
+  );
 
   return (
     <div className={`p-4 bg-darkbg-800/20 border ${meta.borderClass} rounded-xl backdrop-blur-sm transition-all duration-300 hover:bg-darkbg-800/40`}>
@@ -89,7 +108,7 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({ category, amount }) =>
             ) : (
               <TrendingDown className="w-3.5 h-3.5 text-emerald-400" />
             )}
-            <span className={`text-xs font-medium ${isOverBaseline ? 'text-rose-400' : 'text-emerald-400'}`}>
+            <span className={`text-xs font-medium ${percentageColor}`}>
               {percentageOfBaseline}% of average
             </span>
           </div>
@@ -99,12 +118,11 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({ category, amount }) =>
       {/* Progress bar */}
       <div className="relative w-full h-2.5 bg-darkbg-900 rounded-full overflow-hidden border border-darkbg-700/30">
         <div 
-          className={`h-full rounded-full transition-all duration-1000 ease-out ${meta.colorClass} ${
-            isOverBaseline ? 'opacity-90 shadow-[0_0_8px_#f43f5e]' : ''
-          }`}
+          className={`h-full rounded-full transition-all duration-1000 ease-out ${meta.colorClass} ${barShadowClass}`}
           style={{ width: `${cappedWidth}%` }}
         />
       </div>
     </div>
   );
 };
+

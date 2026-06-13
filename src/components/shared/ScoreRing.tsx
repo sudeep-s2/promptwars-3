@@ -4,30 +4,40 @@ interface ScoreRingProps {
   score: number;
 }
 
-export const ScoreRing: React.FC<ScoreRingProps> = ({ score }) => {
+export const ScoreRing: React.FC<ScoreRingProps> = ({ score }): React.ReactElement => {
   const radius = 80;
   const strokeWidth = 14;
   const circumference = 2 * Math.PI * radius;
   // Score is 0-100 (where 100 is best / lowest emissions)
   const offset = circumference - (score / 100) * circumference;
 
-  // Determine color and description based on score
-  let strokeGradient = 'url(#scoreGradientGreen)';
-  let scoreClass = 'text-emerald-400';
-  let rating = 'Eco Champion';
-  let ratingDesc = 'Minimal environmental footprint.';
+  // Determine color and description based on score (early returns)
+  const getScoreMetadata = (): { strokeGradient: string; scoreClass: string; rating: string; ratingDesc: string } => {
+    if (score < 50) {
+      return {
+        strokeGradient: 'url(#scoreGradientRed)',
+        scoreClass: 'text-rose-500',
+        rating: 'High Impact',
+        ratingDesc: 'Considerable reduction possible.'
+      };
+    }
+    if (score < 80) {
+      return {
+        strokeGradient: 'url(#scoreGradientAmber)',
+        scoreClass: 'text-amber-400',
+        rating: 'Moderate Impact',
+        ratingDesc: 'On the path to sustainability.'
+      };
+    }
+    return {
+      strokeGradient: 'url(#scoreGradientGreen)',
+      scoreClass: 'text-emerald-400',
+      rating: 'Eco Champion',
+      ratingDesc: 'Minimal environmental footprint.'
+    };
+  };
 
-  if (score < 50) {
-    strokeGradient = 'url(#scoreGradientRed)';
-    scoreClass = 'text-rose-500';
-    rating = 'High Impact';
-    ratingDesc = 'Considerable reduction possible.';
-  } else if (score < 80) {
-    strokeGradient = 'url(#scoreGradientAmber)';
-    scoreClass = 'text-amber-400';
-    rating = 'Moderate Impact';
-    ratingDesc = 'On the path to sustainability.';
-  }
+  const { strokeGradient, scoreClass, rating, ratingDesc } = getScoreMetadata();
 
   return (
     <div className="flex flex-col items-center justify-center p-6 bg-darkbg-800/40 backdrop-blur-md border border-darkbg-700/50 rounded-2xl shadow-glass">

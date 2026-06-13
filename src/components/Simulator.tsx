@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { updateLevers } from '../context/actions';
 import { useCarbon } from '../hooks/useCarbon';
@@ -16,7 +16,7 @@ import {
 import { LeverControls } from './simulator/LeverControls';
 import { ProjectionChart } from './simulator/ProjectionChart';
 
-export const Simulator: React.FC = () => {
+export const Simulator: React.FC = (): React.ReactElement => {
   const { simulatorLevers } = useAppState();
   const dispatch = useAppDispatch();
   const { totalCO2, carbonScore } = useCarbon();
@@ -35,37 +35,78 @@ export const Simulator: React.FC = () => {
   const currentLevers = hasLogged ? simulatorLevers : BASELINE_LEVERS;
   const currentCost = getLifestyleCost(currentLevers);
 
-  const improvedLevers: SimulatorState = {
-    transportMode,
-    weeklyKm,
-    diet,
-    monthlyKwh,
-    monthlyClothingItems: clothingItems,
-    monthlyElectronicsItems: electronicsItems
-  };
-
-  const improvedCost = getLifestyleCost(improvedLevers);
-  const improvedCO2Breakdown = getLifestyleCO2(improvedLevers);
-  const improvedMonthlyCO2 = improvedCO2Breakdown.total;
-  const currentCO2Breakdown = getLifestyleCO2(currentLevers);
-
-  const projectedScore = calculateCarbonScore(
-    improvedCO2Breakdown.transport,
-    improvedCO2Breakdown.food,
-    improvedCO2Breakdown.electricity,
-    improvedCO2Breakdown.shopping
+  // Memoize improved levers object to prevent dependency issues
+  const improvedLevers: SimulatorState = useMemo(
+    () => ({
+      transportMode,
+      weeklyKm,
+      diet,
+      monthlyKwh,
+      monthlyClothingItems: clothingItems,
+      monthlyElectronicsItems: electronicsItems
+    }),
+    [transportMode, weeklyKm, diet, monthlyKwh, clothingItems, electronicsItems]
   );
 
-  const savedCO2Monthly = Math.max(0, currentMonthlyCO2 - improvedMonthlyCO2);
-  const savedUSDMonthly = Math.max(0, currentCost - improvedCost);
+  // Memoize calculations to prevent unnecessary re-renders
+  const improvedCost = useMemo(
+    () => getLifestyleCost(improvedLevers),
+    [improvedLevers]
+  );
 
-  const handleSliderChange = (updates: Partial<SimulatorState>) => {
+  const improvedCO2Breakdown = useMemo(
+    () => getLifestyleCO2(improvedLevers),
+    [improvedLevers]
+  );
+
+  const improvedMonthlyCO2 = useMemo(
+    () => improvedCO2Breakdown.total,
+    [improvedCO2Breakdown]
+  );
+
+  const currentCO2Breakdown = useMemo(
+    () => getLifestyleCO2(currentLevers),
+    [currentLevers]
+  );
+
+  const projectedScore = useMemo(
+    () => calculateCarbonScore(
+      improvedCO2Breakdown.transport,
+      improvedCO2Breakdown.food,
+      improvedCO2Breakdown.electricity,
+      improvedCO2Breakdown.shopping
+    ),
+    [improvedCO2Breakdown]
+  );
+
+  const savedCO2Monthly = useMemo(
+    () => Math.max(0, currentMonthlyCO2 - improvedMonthlyCO2),
+    [currentMonthlyCO2, improvedMonthlyCO2]
+  );
+
+  const savedUSDMonthly = useMemo(
+    () => Math.max(0, currentCost - improvedCost),
+    [currentCost, improvedCost]
+  );
+
+  const handleSliderChange = useCallback((updates: Partial<SimulatorState>): void => {
     dispatch(updateLevers(updates));
-  };
+  }, [dispatch]);
 
-  const chartData = buildProjectionData(currentMonthlyCO2, improvedMonthlyCO2);
-  const changes = buildSimulatorChanges(currentCO2Breakdown, improvedCO2Breakdown, transportMode, diet, monthlyKwh);
-  const topChange = getTopChange(changes);
+  const chartData = useMemo(
+    () => buildProjectionData(currentMonthlyCO2, improvedMonthlyCO2),
+    [currentMonthlyCO2, improvedMonthlyCO2]
+  );
+
+  const changes = useMemo(
+    () => buildSimulatorChanges(currentCO2Breakdown, improvedCO2Breakdown, transportMode, diet, monthlyKwh),
+    [currentCO2Breakdown, improvedCO2Breakdown, transportMode, diet, monthlyKwh]
+  );
+
+  const topChange = useMemo(
+    () => getTopChange(changes),
+    [changes]
+  );
 
   return (
     <div className="space-y-6">

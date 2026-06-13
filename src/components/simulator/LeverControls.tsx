@@ -33,7 +33,7 @@ export const LeverControls: React.FC<LeverControlsProps> = ({
   setClothingItems,
   setElectronicsItems,
   handleSliderChange
-}) => (
+}): React.ReactElement => (
   <div className="lg:col-span-6 space-y-6 bg-darkbg-800/40 border border-darkbg-700/50 rounded-2xl p-6 shadow-glass">
     <h3 className="text-gray-300 font-semibold text-sm tracking-wide mb-4">Adjust Lifestyle Levers</h3>
 

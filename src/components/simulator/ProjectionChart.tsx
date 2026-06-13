@@ -20,7 +20,7 @@ function isProjectionPoint(value: unknown): value is ProjectionPoint {
   return 'month' in value && 'Current' in value && 'Improved' in value;
 }
 
-const ProjectionTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+const ProjectionTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }): React.ReactNode => {
   if (active && payload && payload.length >= 2) {
     const point = payload[0].payload;
     if (!isProjectionPoint(point)) return null;
@@ -48,7 +48,7 @@ const ProjectionTooltip: React.FC<TooltipProps<number, string>> = ({ active, pay
   return null;
 };
 
-export const ProjectionChart: React.FC<ProjectionChartProps> = ({ chartData }) => (
+export const ProjectionChart: React.FC<ProjectionChartProps> = ({ chartData }): React.ReactElement => (
   <div className="bg-darkbg-800/40 border border-darkbg-700/50 rounded-2xl p-5 shadow-glass h-80 flex flex-col justify-between">
     <div className="flex items-center justify-between mb-3">
       <h3 className="text-gray-300 text-sm font-semibold tracking-wide">12-Month Cumulative Projection</h3>

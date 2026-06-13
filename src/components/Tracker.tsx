@@ -10,7 +10,7 @@ import {
   TransportStep
 } from './tracker/TrackerSteps';
 
-export const Tracker: React.FC = () => {
+export const Tracker: React.FC = (): React.ReactElement => {
   const form = useTrackerForm();
 
   return (

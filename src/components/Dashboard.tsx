@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useCarbon } from '../hooks/useCarbon';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { ScoreRing } from './shared/ScoreRing';
@@ -9,7 +9,7 @@ import { ActivityCategory } from '../types';
 import { Sparkles, PlusCircle, Target, RefreshCw, AlertCircle, Trash2 } from 'lucide-react';
 import { deleteEntry, setTarget, setTab, clearData } from '../context/actions';
 
-export const Dashboard: React.FC = () => {
+export const Dashboard: React.FC = (): React.ReactElement => {
   const {
     transportCO2,
     foodCO2,
@@ -28,37 +28,107 @@ export const Dashboard: React.FC = () => {
   const [editingTarget, setEditingTarget] = useState<boolean>(false);
   const [tempTarget, setTempTarget] = useState<string>(String(monthlyTarget));
 
-  // Determine highest emission category
-  const categories: { name: ActivityCategory; amount: number }[] = [
-    { name: 'transport', amount: transportCO2 },
-    { name: 'food', amount: foodCO2 },
-    { name: 'electricity', amount: electricityCO2 },
-    { name: 'shopping', amount: shoppingCO2 }
-  ];
+  // Memoize categories array to prevent recreation on every render
+  const categories: { name: ActivityCategory; amount: number }[] = useMemo(
+    () => [
+      { name: 'transport', amount: transportCO2 },
+      { name: 'food', amount: foodCO2 },
+      { name: 'electricity', amount: electricityCO2 },
+      { name: 'shopping', amount: shoppingCO2 }
+    ],
+    [transportCO2, foodCO2, electricityCO2, shoppingCO2]
+  );
 
-  const highestCategoryObj = categories.reduce((prev, current) => {
-    return (current.amount > prev.amount) ? current : prev;
-  }, categories[0]);
+  // Memoize highest category calculation
+  const highestCategoryData = useMemo(() => {
+    const highestCategoryObj = categories.reduce((prev, current) => {
+      return (current.amount > prev.amount) ? current : prev;
+    }, categories[0]);
 
-  const highestCategory = highestCategoryObj.amount > 0 ? highestCategoryObj.name : 'transport';
-  const highestCO2 = highestCategoryObj.amount;
-  const highestPct = totalCO2 > 0 ? (highestCO2 / totalCO2) * 100 : 0;
-  const { insight, loadingInsight } = useCarbonInsight(totalCO2, highestCategory, highestPct, highestCO2);
+    return {
+      name: highestCategoryObj.amount > 0 ? highestCategoryObj.name : 'transport',
+      co2: highestCategoryObj.amount,
+      percentage: totalCO2 > 0 ? (highestCategoryObj.amount / totalCO2) * 100 : 0
+    };
+  }, [categories, totalCO2]);
 
-  const handleSaveTarget = () => {
+  const { insight, loadingInsight } = useCarbonInsight(
+    totalCO2,
+    highestCategoryData.name,
+    highestCategoryData.percentage,
+    highestCategoryData.co2
+  );
+
+  // Wrapped callbacks with useCallback
+  const handleSaveTarget = useCallback((): void => {
     const val = parseFloat(tempTarget);
-    if (!isNaN(val) && val >= 50 && val <= 5000) {
-      dispatch(setTarget(val));
-      setEditingTarget(false);
-    } else {
+    const isValidRange = !isNaN(val) && val >= 50 && val <= 5000;
+    
+    if (!isValidRange) {
       alert('Please enter a target between 50 and 5000 kg CO₂.');
+      return;
     }
-  };
+    
+    dispatch(setTarget(val));
+    setEditingTarget(false);
+  }, [tempTarget, dispatch]);
 
-  const handleClear = () => {
-    if (confirm('Are you sure you want to reset all logged data? This cannot be undone.')) {
-      dispatch(clearData());
-    }
+  const handleClear = useCallback((): void => {
+    const confirmed = confirm('Are you sure you want to reset all logged data? This cannot be undone.');
+    if (!confirmed) return;
+    dispatch(clearData());
+  }, [dispatch]);
+
+  const handleNavigateToTracker = useCallback((): void => {
+    dispatch(setTab('tracker'));
+  }, [dispatch]);
+
+  const handleCancelEditTarget = useCallback((): void => {
+    setTempTarget(String(monthlyTarget));
+    setEditingTarget(false);
+  }, [monthlyTarget]);
+
+  const handleEditTarget = useCallback((): void => {
+    setEditingTarget(true);
+  }, []);
+
+  const handleDeleteEntry = useCallback((entryId: string): void => {
+    dispatch(deleteEntry(entryId));
+  }, [dispatch]);
+
+  const budgetRemaining = useMemo(
+    (): number => Math.max(0, Math.round(monthlyTarget - totalCO2)),
+    [monthlyTarget, totalCO2]
+  );
+
+  const budgetTextColor = useMemo(
+    (): string => isOverTarget ? 'text-rose-400 font-semibold' : 'text-emerald-400 font-semibold',
+    [isOverTarget]
+  );
+
+  const progressPercentageColor = useMemo(
+    (): string => isOverTarget ? 'text-rose-500' : 'text-emerald-400',
+    [isOverTarget]
+  );
+
+  const progressBarColor = useMemo(
+    (): string => isOverTarget ? 'bg-rose-500' : 'bg-emerald-500',
+    [isOverTarget]
+  );
+
+  const progressBarWidth = useMemo(
+    (): string => `${Math.min(100, percentageOfTarget)}%`,
+    [percentageOfTarget]
+  );
+
+  // Helper function with explicit return type
+  const formatEntryDate = (timestamp: number): string => {
+    return new Date(timestamp).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
@@ -71,7 +141,7 @@ export const Dashboard: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => dispatch(setTab('tracker'))}
+            onClick={handleNavigateToTracker}
             className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-darkbg-950 font-bold rounded-xl shadow-[0_4px_20px_rgba(16,185,129,0.3)] transition-all duration-200 text-sm"
           >
             <PlusCircle className="w-4 h-4" />
@@ -111,10 +181,7 @@ export const Dashboard: React.FC = () => {
                   Save
                 </button>
                 <button
-                  onClick={() => {
-                    setTempTarget(String(monthlyTarget));
-                    setEditingTarget(false);
-                  }}
+                  onClick={handleCancelEditTarget}
                   className="px-3 py-1.5 bg-darkbg-700 text-gray-300 text-xs rounded-md hover:bg-darkbg-600 transition-colors"
                 >
                   Cancel
@@ -125,7 +192,7 @@ export const Dashboard: React.FC = () => {
             <div>
               <div className="text-3xl font-extrabold text-gray-100">{monthlyTarget} <span className="text-sm font-normal text-gray-400">kg CO₂</span></div>
               <button
-                onClick={() => setEditingTarget(true)}
+                onClick={handleEditTarget}
                 className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline mt-2"
               >
                 Change Limit Target
@@ -140,24 +207,23 @@ export const Dashboard: React.FC = () => {
             {Math.round(totalCO2)} <span className="text-sm font-normal text-gray-400">kg CO₂</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            Average budget remaining: <span className={isOverTarget ? 'text-rose-400 font-semibold' : 'text-emerald-400 font-semibold'}>
-              {Math.max(0, Math.round(monthlyTarget - totalCO2))} kg
-            </span>
+            Average budget remaining: <span className={budgetTextColor}>{budgetRemaining} kg</span>
           </p>
         </div>
 
+        {/* Target Usage Card */}
         <div className="p-5 bg-darkbg-800/40 border border-darkbg-700/50 rounded-2xl shadow-glass flex flex-col justify-between">
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Target Usage</span>
           <div className="flex items-baseline gap-2">
-            <span className={`text-3xl font-extrabold ${isOverTarget ? 'text-rose-500' : 'text-emerald-400'}`}>
+            <span className={`text-3xl font-extrabold ${progressPercentageColor}`}>
               {percentageOfTarget}%
             </span>
             <span className="text-xs text-gray-500">allocated</span>
           </div>
           <div className="w-full h-1.5 bg-darkbg-900 rounded-full mt-3 overflow-hidden">
             <div 
-              className={`h-full rounded-full transition-all duration-500 ${isOverTarget ? 'bg-rose-500' : 'bg-emerald-500'}`}
-              style={{ width: `${Math.min(100, percentageOfTarget)}%` }}
+              className={`h-full rounded-full transition-all duration-500 ${progressBarColor}`}
+              style={{ width: progressBarWidth }}
             />
           </div>
         </div>
@@ -234,18 +300,13 @@ export const Dashboard: React.FC = () => {
                         <span className="text-xxs px-1.5 py-0.5 rounded bg-darkbg-700 text-gray-400 capitalize">{entry.subcategory || 'General'}</span>
                       </div>
                       <span className="text-xxs text-gray-500 mt-1 block">
-                        {new Date(entry.timestamp).toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })} — {entry.quantity} {entry.unit}
+                        {formatEntryDate(entry.timestamp)} — {entry.quantity} {entry.unit}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-rose-400">{Math.round(entry.kgCO2)} kg CO₂</span>
                       <button
-                        onClick={() => dispatch(deleteEntry(entry.id))}
+                        onClick={() => handleDeleteEntry(entry.id)}
                         className="p-1 text-gray-500 hover:text-rose-400 transition-colors"
                         title="Delete log"
                         aria-label="Delete activity entry"

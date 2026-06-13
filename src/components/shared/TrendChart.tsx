@@ -30,7 +30,7 @@ function isTrendDatum(value: unknown): value is TrendDatum {
   return 'name' in value && 'You' in value && 'Average' in value;
 }
 
-const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }) => {
+const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload }): React.ReactNode => {
   if (active && payload && payload.length >= 2) {
     const category = payload[0].payload;
     if (!isTrendDatum(category)) return null;
@@ -60,7 +60,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   food,
   electricity,
   shopping
-}) => {
+}): React.ReactElement => {
   const data: TrendDatum[] = [
     {
       name: 'Transport',

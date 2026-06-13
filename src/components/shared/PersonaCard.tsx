@@ -15,7 +15,7 @@ export const PersonaCard: React.FC<PersonaCardProps> = ({
   savedCO2Monthly,
   savedUSDMonthly,
   topChange
-}) => {
+}): React.ReactElement => {
   // 12-month projections
   const annualCO2Saved = Math.round(savedCO2Monthly * 12);
   const annualUSDSaved = Math.round(savedUSDMonthly * 12);

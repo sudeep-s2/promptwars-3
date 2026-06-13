@@ -11,7 +11,7 @@ import {
   HelpCircle 
 } from 'lucide-react';
 
-export const RankingEngine: React.FC = () => {
+export const RankingEngine: React.FC = (): React.ReactElement => {
   const { entries } = useAppState();
   
   // Generate recommendations based on active user logs
@@ -20,11 +20,11 @@ export const RankingEngine: React.FC = () => {
   // Toggle state for explanations (keys are recommendation IDs)
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const toggleExpand = (id: string) => {
+  const toggleExpand = (id: string): void => {
     setExpandedId(prev => (prev === id ? null : id));
   };
 
-  const getDifficultyColor = (diff: number) => {
+  const getDifficultyColor = (diff: number): string => {
     if (diff <= 3) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
     if (diff <= 6) return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
     return 'bg-rose-500/10 text-rose-400 border-rose-500/20';

@@ -2,7 +2,7 @@ import React from 'react';
 import { COEFFICIENTS, BASELINES } from '../utils/carbonMath';
 import { Info, ShieldCheck, Database, BookOpen } from 'lucide-react';
 
-export const Methodology: React.FC = () => {
+export const Methodology: React.FC = (): React.ReactElement => {
   return (
     <div className="space-y-6">
       {/* Header */}

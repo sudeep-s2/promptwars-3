@@ -28,15 +28,9 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
   
   // Group emissions by category
   let transportCO2 = 0;
-  let foodCO2 = 0;
-  let electricityCO2 = 0;
-  let shoppingCO2 = 0;
-
   let carKm = 0;
   let currentDiet: DietType = 'mixed';
   let electricityKwh = 0;
-  let clothingItems = 0;
-  let electronicsItems = 0;
 
   // Simple aggregation: sum all values in entries. If empty, we use baseline equivalents.
   if (entries.length > 0) {
@@ -47,18 +41,9 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
           carKm += entry.quantity;
         }
       } else if (entry.category === 'food') {
-        foodCO2 += entry.kgCO2;
         currentDiet = entry.subcategory;
       } else if (entry.category === 'electricity') {
-        electricityCO2 += entry.kgCO2;
         electricityKwh += entry.quantity;
-      } else if (entry.category === 'shopping') {
-        shoppingCO2 += entry.kgCO2;
-        if (entry.subcategory === 'clothing') {
-          clothingItems += entry.quantity;
-        } else if (entry.subcategory === 'electronics') {
-          electronicsItems += entry.quantity;
-        }
       }
     });
 
@@ -72,15 +57,7 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
     carKm = 600; // km per month
     currentDiet = 'high-meat';
     electricityKwh = 300; // kWh per month
-    clothingItems = 3;
-    electronicsItems = 1;
   }
-
-  // foodCO2, electricityCO2, shoppingCO2, and electronicsItems are aggregated above
-  // for future extensibility but are not directly used in the recommendation formulas below.
-  // They serve as auditable running totals for the aggregation pass.
-  const _unused = { foodCO2, electricityCO2, shoppingCO2, electronicsItems } as const;
-  void _unused;
 
   const recs: Recommendation[] = [];
 
