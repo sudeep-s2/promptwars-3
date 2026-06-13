@@ -2,7 +2,6 @@ import { BASELINES, COEFFICIENTS, SCORE_CATEGORY_RATIO_CAP, SCORE_WEIGHTS } from
 import { DIET_OPTIONS, TRANSPORT_MODES } from '../constants/options';
 import { TransportMode, DietType, ActivityCategory, CarbonScore } from '../types';
 
-export { BASELINES, COEFFICIENTS } from '../constants/carbonConstants';
 
 export function isTransportMode(value: string): value is TransportMode {
   return TRANSPORT_MODES.some(mode => mode === value);

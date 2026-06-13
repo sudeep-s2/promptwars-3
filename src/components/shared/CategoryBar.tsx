@@ -8,7 +8,7 @@ import {
   TrendingDown 
 } from 'lucide-react';
 import { ActivityCategory } from '../../types';
-import { BASELINES } from '../../utils/carbonMath';
+import { BASELINES } from '../../constants/carbonConstants';
 
 interface CategoryBarProps {
   category: ActivityCategory;

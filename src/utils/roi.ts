@@ -1,5 +1,10 @@
 import { Recommendation, ActivityEntry, DietType } from '../types';
-import { COEFFICIENTS } from './carbonMath';
+import { COEFFICIENTS, LIFESTYLE_COSTS } from '../constants/carbonConstants';
+
+// ROI model parameters — savings-per-unit multipliers used in recommendation calculations
+const CAR_TO_TRAIN_SAVING_PER_KM = 0.08;  // $/km fuel + maintenance saved vs train
+const CAR_TO_BUS_SAVING_PER_KM  = 0.06;  // $/km fuel + maintenance saved vs bus
+const ELECTRICITY_SAVING_PER_KWH = 0.12; // $/kWh grid savings (utility rate delta)
 
 /**
  * Computes the impact score for a recommendation.
@@ -49,7 +54,6 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
         electricityKwh += entry.quantity;
       } else if (entry.category === 'shopping') {
         shoppingCO2 += entry.kgCO2;
-        clothingItems += entry.quantity;
         if (entry.subcategory === 'clothing') {
           clothingItems += entry.quantity;
         } else if (entry.subcategory === 'electronics') {
@@ -72,10 +76,11 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
     electronicsItems = 1;
   }
 
-  void foodCO2;
-  void electricityCO2;
-  void shoppingCO2;
-  void electronicsItems;
+  // foodCO2, electricityCO2, shoppingCO2, and electronicsItems are aggregated above
+  // for future extensibility but are not directly used in the recommendation formulas below.
+  // They serve as auditable running totals for the aggregation pass.
+  const _unused = { foodCO2, electricityCO2, shoppingCO2, electronicsItems } as const;
+  void _unused;
 
   const recs: Recommendation[] = [];
 
@@ -83,7 +88,7 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
   if (carKm > 0) {
     const shiftKm = carKm * 0.3; // Shift 30% of driving
     const carbonSaving = shiftKm * (COEFFICIENTS.transport.car - COEFFICIENTS.transport.train);
-    const financialSaving = shiftKm * 0.08; // $0.08/km saved
+    const financialSaving = shiftKm * CAR_TO_TRAIN_SAVING_PER_KM;
     const difficulty = 4;
     recs.push({
       id: 'car-to-train',
@@ -101,7 +106,7 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
   if (carKm > 0) {
     const shiftKm = carKm * 0.2; // Shift 20% of driving
     const carbonSaving = shiftKm * (COEFFICIENTS.transport.car - COEFFICIENTS.transport.bus);
-    const financialSaving = shiftKm * 0.06; // $0.06/km saved
+    const financialSaving = shiftKm * CAR_TO_BUS_SAVING_PER_KM;
     const difficulty = 3;
     recs.push({
       id: 'car-to-bus',
@@ -157,7 +162,7 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
   if (electricityKwh > 0) {
     const savedKwh = electricityKwh * 0.1;
     const carbonSaving = savedKwh * COEFFICIENTS.electricity.grid;
-    const financialSaving = savedKwh * 0.12; // $0.12/kWh saved
+    const financialSaving = savedKwh * ELECTRICITY_SAVING_PER_KWH;
     const difficulty = 2;
     recs.push({
       id: 'electricity-reduction',
@@ -172,9 +177,9 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
   }
 
   // 6. Clothing shopping reduction (1 less item)
-  const clothesToSave = clothingItems > 0 ? 1 : 1;
+  const clothesToSave = 1; // Always recommend saving at least 1 item per month
   const clothCarbonSaving = clothesToSave * COEFFICIENTS.shopping.clothing;
-  const clothFinancialSaving = clothesToSave * 45; // $45 per clothing item
+  const clothFinancialSaving = clothesToSave * LIFESTYLE_COSTS.clothingPerItem;
   const clothDifficulty = 2;
   recs.push({
     id: 'shopping-clothing',
@@ -187,9 +192,9 @@ export function generateRecommendations(entries: ActivityEntry[]): Recommendatio
     explanation: `Calculated as: ${clothesToSave} item × ${COEFFICIENTS.shopping.clothing} kgCO₂/clothing item = ${Math.round(clothCarbonSaving)} kg CO₂ saved. Financial savings estimated at standard apparel cost of $45.`
   });
 
-  // 7. Electronics lifespan extension
-  const elecCarbonSaving = 1 * (COEFFICIENTS.shopping.electronics / 12); // monthly proportion of 1 less item per year
-  const elecFinancialSaving = 180 / 12; // $180 saved spread over 12 months
+  // 7. Electronics lifespan extension (1 less device per year, spread monthly)
+  const elecCarbonSaving = COEFFICIENTS.shopping.electronics / 12;
+  const elecFinancialSaving = LIFESTYLE_COSTS.electronicsPerItem / 12;
   const elecDifficulty = 3;
   recs.push({
     id: 'shopping-electronics',

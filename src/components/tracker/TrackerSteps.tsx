@@ -2,7 +2,7 @@ import React from 'react';
 import { Car, HelpCircle, Utensils } from 'lucide-react';
 import { DIET_OPTIONS, TRANSPORT_MODES } from '../../constants/options';
 import type { TrackerFormState } from '../../hooks/useTrackerForm';
-import { COEFFICIENTS } from '../../utils/carbonMath';
+import { COEFFICIENTS } from '../../constants/carbonConstants';
 
 type TrackerStepProps = Pick<
   TrackerFormState,

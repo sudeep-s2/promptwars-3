@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   type TooltipProps
 } from 'recharts';
-import { BASELINES } from '../../utils/carbonMath';
+import { BASELINES } from '../../constants/carbonConstants';
 
 interface TrendChartProps {
   transport: number;

@@ -37,7 +37,7 @@ export const Tracker: React.FC = () => {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                   isCurrent
-                    ? 'bg-darkbg-950 border-emerald-500 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]Scale'
+                    ? 'bg-darkbg-950 border-emerald-500 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.4)]'
                     : isActive
                       ? 'bg-emerald-500 border-emerald-500 text-darkbg-950 font-bold'
                       : 'bg-darkbg-900 border-darkbg-700 text-gray-500'
